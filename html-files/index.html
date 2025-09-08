@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flask Chatbot</title>
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#0D0C1D; color:#e6eef8; }
+    .app { display: grid; grid-template-columns: 240px 1fr; height:100vh; }
+    .sidebar { background:#16152B; padding:12px; }
+    .brand { font-weight:bold; font-size:20px; }
+    .main-chat { display:flex; flex-direction:column; border-left:1px solid #333; }
+    .messages { flex:1; padding:16px; overflow-y:auto; }
+    .msg { margin-bottom:12px; }
+    .msg strong { color:#7afcff; }
+    .bubble { background:#211F3C; padding:8px 12px; border-radius:10px; display:inline-block; margin-top:4px; }
+    .composer-area { border-top:1px solid #333; padding:12px; background:#16152B; }
+    .composer { display:flex; gap:8px; }
+    .text-input { flex:1; padding:8px; border:none; border-radius:8px; font-size:15px; }
+    .btn { padding:8px 16px; border:none; border-radius:8px; background:#ff6ec7; color:#0D0C1D; font-weight:bold; cursor:pointer; }
+    .btn:hover { filter:brightness(1.2); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">FlaskBot</div>
+    </aside>
+
+    <main class="main-chat">
+      <div class="messages" id="messages"></div>
+      <div class="composer-area">
+        <div class="composer">
+          <input id="input" class="text-input" placeholder="Type a message..." />
+          <button id="sendBtn" class="btn">Send</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const messagesEl = document.getElementById("messages");
+    const inputEl = document.getElementById("input");
+    const sendBtn = document.getElementById("sendBtn");
+
+    function addMessage(name, text) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "msg";
+      msgDiv.innerHTML = `<strong>${name}:</strong><div class="bubble">${text}</div>`;
+      messagesEl.appendChild(msgDiv);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function sendMessage() {
+      const txt = inputEl.value.trim();
+      if (!txt) return;
+
+      addMessage("You", txt);
+
+      fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: txt })
+      })
+      .then(res => res.json())
+      .then(data => {
+        addMessage("Bot", data.reply);
+      });
+
+      inputEl.value = "";
+    }
+
+    sendBtn.onclick = sendMessage;
+    inputEl.addEventListener("keydown", e => {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
